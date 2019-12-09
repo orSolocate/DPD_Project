@@ -20,9 +20,9 @@ P = 5; Q = 5;                                              %cross-terms for GMP
 %% RF-WEBLAB User inputs
 memory_deg_weblab   = 3;                                   %K in the MP model
 memory_depth_weblab = 5;                                   %M in the MP model
-Ma_WL = 7; Mb_WL = 2; Mc_WL = 2;                           %memory deg for GMP model
-Ka_WL = 8; Kb_WL = 5; Kc_WL = 5;                           %non-linearity deg for GMP
-P_WL = 12; Q_WL = 12;                                        %cross-terms for GMP
+Ma_WL = 9; Mb_WL = 2; Mc_WL = 0;                           %memory deg for GMP model
+Ka_WL = 8; Kb_WL = 5; Kc_WL = 0;                           %non-linearity deg for GMP
+P_WL = 5; Q_WL = 0;                                        %cross-terms for GMP
 
 %% Initialize
 load(amp_data);                                            %load amp data
@@ -129,8 +129,8 @@ end
 [y_RFW_MP, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_opt_weblab_MP);
 [y_RFW_GMP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_weblab_GMP);
 transfer_no_PD_weblab         = y./x;
-transfer_with_MP_PD_weblab    = y_RFW_MP./x;
-transfer_with_GMP_PD_weblab   = y_RFW_GMP./x;
+transfer_with_MP_PD_weblab    = y_RFW_MP./x_opt_weblab_MP;
+transfer_with_GMP_PD_weblab   = y_RFW_GMP./x_opt_weblab_GMP;
 
 figure
 pspectrum(y_d_WL(memory_depth_weblab+1:end))
@@ -143,11 +143,11 @@ pspectrum(y_RFW_GMP)
 legend('y_d','no PD','with MP PD','with GMP PD')
 
 figure;
-plot(abs(y_d_WL./avg_gain), 20*log10(abs(transfer_no_PD_weblab)), 'o');
+plot(abs(y_d_WL./avg_gain_weblab), 20*log10(abs(transfer_no_PD_weblab)), 'o');
 hold on;
-plot(abs(y_d_WL./avg_gain), 20*log10(abs(transfer_with_MP_PD_weblab)), '+');
+plot(abs(y_d_WL./avg_gain_weblab), 20*log10(abs(transfer_with_MP_PD_weblab)), '+');
 hold on;
-plot(abs(y_d_WL./avg_gain), 20*log10(abs(transfer_with_GMP_PD_weblab)), '*');
+plot(abs(y_d_WL./avg_gain_weblab), 20*log10(abs(transfer_with_GMP_PD_weblab)), '*');
 legend('Without DPD','with MP PD','with GMP PD')
 xlabel('abs(input)');
 ylabel('Magnitude');
