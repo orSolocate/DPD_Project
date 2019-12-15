@@ -1,25 +1,23 @@
 clc; clear; close all;                                     %start freash
 
 %% General User inputs
-%signal            = '100MHzLTE.mat';
 signal            = 'testsignal.mat';
-model_run_period  = 50000 ;                                %num of samples to run in the model
+model_run_period  = 40000 ;                                %num of samples to run in the model
 start_pos_sig     = 25001;
 end_pos_sig       = start_pos_sig+model_run_period-1;
-iterations_num    = 2;
-miu_MP            = 0.05;
-miu_GMP           = 0.05;
+iterations_num    = 20;
+miu_MP            = 0.4;
+miu_GMP           = 0.005;
 
 %% RF-WEBLAB User inputs
-mem_deg   = 3 ;                                             %K in the MP model
-mem_depth = 5 ;                                             %M in the MP model
-Ma_WL = 8 ; Mb_WL = 2 ; Mc_WL = 2 ;                         %memory deg for GMP model
-Ka_WL = 10; Kb_WL = 5 ; Kc_WL = 5 ;                         %non-linearity deg for GMP
-             P_WL = 10;  Q_WL = 10;                         %cross-terms for GMP
+mem_deg   = 10;                                             %K in the MP model
+mem_depth = 3 ;                                             %M in the MP model
+Ma_WL = 9 ; Mb_WL = 1 ; Mc_WL = 1 ;                         %memory deg for GMP model
+Ka_WL = 8 ; Kb_WL = 2 ; Kc_WL = 2 ;                         %non-linearity deg for GMP
+             P_WL = 3 ;  Q_WL = 3 ;                         %cross-terms for GMP
 
 %% RF-WEBLAB Initialize and Model
 load(signal);                                              %load signal
-%x                      = waveform(start_pos_sig:end_pos_sig);
 x                      = x(start_pos_sig:end_pos_sig)./(norm(x,2));
 [y, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x);
 WL_delay               = finddelay(x, y);
@@ -76,30 +74,33 @@ ll                           = 1;
 while (ll<=iterations_num)
     
     x_opt_tilda_weblab_MP    = [zeros(mem_depth,1); PD_MP(y_RFW_MP, PD_coef_Matrix_WL, mem_deg, mem_depth)];
-    x_opt_tilda_weblab_GMP   = [zeros(first_n_GMP_WL-1,1); PD_GMP(y_RFW_GMP, PD_coef_Vec_GMP_WL,orders_WL); zeros(orders_WL(8),1)];
+    %x_opt_tilda_weblab_GMP   = [zeros(first_n_GMP_WL-1,1); PD_GMP(y_RFW_GMP, PD_coef_Vec_GMP_WL,orders_WL); zeros(orders_WL(8),1)];
     error_x_opts_MP          = x_opt_weblab_MP - x_opt_tilda_weblab_MP;
-    error_x_opts_GMP         = x_opt_weblab_GMP - x_opt_tilda_weblab_GMP;
-    error_per_iter_MP(ll+1)  = norm(error_x_opts_MP,2);
-    error_per_iter_GMP(ll+1) = norm(error_x_opts_GMP,2);
+    %error_x_opts_GMP         = x_opt_weblab_GMP - x_opt_tilda_weblab_GMP;
+    error_on_y_MP            = y_d_WL - y_RFW_MP;
+    %error_on_y_GMP           = y_d_WL - y_RFW_GMP;
+    error_per_iter_MP(ll+1)  = norm(error_on_y_MP,2);
+    %error_per_iter_GMP(ll+1) = norm(error_on_y_GMP,2);
     %err_MP                   = (y_RFW_MP./avg_gain) - x;
-    %err_GMP                   = (y_RFW_GMP./avg_gain) - x;
+    %err_MP                   = (y_RFW_GMP./avg_gain) - x;
     
     %get the updated coefficients for the model
-    PD_coef_Matrix_WL  = Update_coef_MP(error_x_opts_MP, y_d_WL, PD_coef_Matrix_WL, mem_deg, mem_depth, miu_MP);
-    PD_coef_Vec_GMP_WL = Update_coef_GMP(error_x_opts_GMP, y_d_WL, PD_coef_Vec_GMP_WL, orders_WL, miu_GMP);
+    PD_coef_Matrix_WL  = Update_coef_MP(x_opt_weblab_MP, error_on_y_MP, PD_coef_Matrix_WL, mem_deg, mem_depth, miu_MP);
+    %PD_coef_Vec_GMP_WL = Update_coef_GMP(error_x_opts_GMP, error_on_y_GMP, PD_coef_Vec_GMP_WL, orders_WL, miu_GMP);
     
     %get the updated optimal input
     x_opt_weblab_MP        = [zeros(mem_depth,1); PD_MP(y_d_WL, PD_coef_Matrix_WL, mem_deg, mem_depth)];
-    x_opt_weblab_GMP       = [zeros(first_n_GMP_WL-1,1); PD_GMP(y_d_WL, PD_coef_Vec_GMP_WL,orders_WL); zeros(orders_WL(8),1)];
+    %x_opt_weblab_GMP       = [zeros(first_n_GMP_WL-1,1); PD_GMP(y_d_WL, PD_coef_Vec_GMP_WL,orders_WL); zeros(orders_WL(8),1)];
     
     %phase correction
     x_opt_weblab_MP        = ifft(fft(x_opt_weblab_MP).*exp(-phdiffmeasure(y_RFW_MP, x_opt_weblab_MP)*1i));
-    x_opt_weblab_GMP       = ifft(fft(x_opt_weblab_GMP).*exp(-phdiffmeasure(y_RFW_GMP, x_opt_weblab_GMP)*1i));
+    %x_opt_weblab_GMP       = ifft(fft(x_opt_weblab_GMP).*exp(-phdiffmeasure(y_RFW_GMP, x_opt_weblab_GMP)*1i));
     
     %get the Amp output
     [y_RFW_MP, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_opt_weblab_MP);
-    [y_RFW_GMP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_weblab_GMP);
+    %[y_RFW_GMP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_weblab_GMP);
     
+    if(0 == mod(ll,5))
     %spectrum plot
     figure
     pspectrum(y_d_WL(mem_depth+1:end))
@@ -108,20 +109,13 @@ while (ll<=iterations_num)
     hold on
     pspectrum(y_RFW_MP(mem_depth+1:end))
     hold on
-    pspectrum(y_RFW_GMP)
+    %pspectrum(y_RFW_GMP)
     legend('y_d','no PD','with MP PD','with GMP PD')  
+    end
     
     disp(['iteration num: ',num2str(ll), ' is done.'])
     ll = ll+1;
-    
-    %if(error_per_iter_MP(ll)>error_per_iter_MP(ll-1))
-    %    miu_MP = -miu_MP;
-    %end
-    
-    %if(error_per_iter_GMP(ll)>error_per_iter_GMP(ll-1))
-    %    miu_GMP = -miu_GMP;
-    %end
-    
+        
 end
 
 %%
