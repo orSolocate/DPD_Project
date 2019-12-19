@@ -1,5 +1,6 @@
 clc; clear; close all;                                     %start freash
 
+
 %% General User inputs
 amp_data          = 'simrfV2_powamp_dpd_data.mat';
 signal            = '100MHzLTE.mat';
@@ -13,13 +14,6 @@ phase_diff        = 0.1;
 %% MATLAB AMP User inputs
 memory_deg        = 5;                                     %K in the MP model
 memory_depth      = 2;                                     %M in the MP model
-Ma = 2; Mb = 1; Mc = 1;                                    %memory deg for GMP model
-Ka = 5; Kb = 7; Kc = 7;                                    %non-linearity deg for GMP
-P = 5; Q = 5;                                              %cross-terms for GMP
-
-%% RF-WEBLAB User inputs
-memory_deg_weblab   = 3;                                   %K in the MP model
-memory_depth_weblab = 5;                                   %M in the MP model
 Ma_WL = 9; Mb_WL = 2; Mc_WL = 0;                           %memory deg for GMP model
 Ka_WL = 8; Kb_WL = 5; Kc_WL = 0;                           %non-linearity deg for GMP
 P_WL = 5; Q_WL = 0;                                        %cross-terms for GMP
@@ -106,49 +100,6 @@ plot(abs(y_d(1:1:length(y_no_PD))./avg_gain), 20*log10(abs(transfer_no_PD(1:1:en
 hold on;
 plot(abs(y_d(1:1:length(y_no_PD))./avg_gain), 20*log10(abs(transfer_with_PD(1:1:end))), '+');
 legend('Without DPD','With DPD')
-xlabel('abs(input)');
-ylabel('Magnitude');
-title('Linearity Comparison');
-
-%% RF-WEBLAB MP Run
-n = memory_depth_weblab+1;
-while (n<length(y_d_WL))                                         %run the system as live
-    x_opt_weblab_MP(n) = PD_MP(y_d_WL(n-memory_depth_weblab:n), PD_coef_Matrix_WL, memory_deg_weblab, memory_depth_weblab);
-    n                  = n+1;
-end
-
-%% RF-WEBLAB GMP Run
-n = first_n_GMP_WL;
-while (n<length(y_d_WL)-Q_WL)                                    %run the system as live
-    x_opt_weblab_GMP(n) = PD_GMP(y_d_WL(n-first_n_GMP_WL+1:n+Q_WL), PD_coef_Vec_GMP_WL, orders_WL);
-    n                   = n+1;
-end
-
-
-%% RF-WEBLAB Ploting
-[y_RFW_MP, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_opt_weblab_MP);
-[y_RFW_GMP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_weblab_GMP);
-transfer_no_PD_weblab         = y./x;
-transfer_with_MP_PD_weblab    = y_RFW_MP./x_opt_weblab_MP;
-transfer_with_GMP_PD_weblab   = y_RFW_GMP./x_opt_weblab_GMP;
-
-figure
-pspectrum(y_d_WL(memory_depth_weblab+1:end))
-hold on
-pspectrum(y)
-hold on
-pspectrum(y_RFW_MP(memory_depth_weblab+1:end))
-hold on
-pspectrum(y_RFW_GMP)
-legend('y_d','no PD','with MP PD','with GMP PD')
-
-figure;
-plot(abs(y_d_WL./avg_gain_weblab), 20*log10(abs(transfer_no_PD_weblab)), 'o');
-hold on;
-plot(abs(y_d_WL./avg_gain_weblab), 20*log10(abs(transfer_with_MP_PD_weblab)), '+');
-hold on;
-plot(abs(y_d_WL./avg_gain_weblab), 20*log10(abs(transfer_with_GMP_PD_weblab)), '*');
-legend('Without DPD','with MP PD','with GMP PD')
 xlabel('abs(input)');
 ylabel('Magnitude');
 title('Linearity Comparison');
