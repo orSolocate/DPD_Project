@@ -3,10 +3,10 @@ clc; clear; close all;                                     %start freash
 %% General User inputs
 signal            = 'testsignal.mat';
 model_run_period  = 40000 ;                                %num of samples to run in the model
-start_pos_sig     = 25001;
+start_pos_sig     = 1;
 end_pos_sig       = start_pos_sig+model_run_period-1;
-iterations_num    = 20;
-miu_MP            = 0.4;
+iterations_num    = 15;
+miu_MP            = 0.05;
 miu_GMP           = 0.005;
 
 %% RF-WEBLAB User inputs
@@ -85,7 +85,7 @@ while (ll<=iterations_num)
     %err_MP                   = (y_RFW_GMP./avg_gain) - x;
     
     %get the updated coefficients for the model
-    PD_coef_Matrix_WL  = Update_coef_MP(x_opt_weblab_MP, error_on_y_MP, PD_coef_Matrix_WL, mem_deg, mem_depth, miu_MP);
+    PD_coef_Matrix_WL  = Update_coef_MP(error_x_opts_MP, y_RFW_MP, PD_coef_Matrix_WL, mem_deg, mem_depth, miu_MP);
     %PD_coef_Vec_GMP_WL = Update_coef_GMP(error_x_opts_GMP, error_on_y_GMP, PD_coef_Vec_GMP_WL, orders_WL, miu_GMP);
     
     %get the updated optimal input
@@ -100,7 +100,7 @@ while (ll<=iterations_num)
     [y_RFW_MP, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_opt_weblab_MP);
     %[y_RFW_GMP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_weblab_GMP);
     
-    if(0 == mod(ll,5))
+    if(0 == mod(ll,3))
     %spectrum plot
     figure
     pspectrum(y_d_WL(mem_depth+1:end))
