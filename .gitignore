@@ -2,4 +2,6 @@
 *.git
 */idea
 *.asv
+*.doc
+*.docx
 old_project- not ours/*
