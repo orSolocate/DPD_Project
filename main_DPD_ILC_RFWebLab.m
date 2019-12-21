@@ -25,7 +25,7 @@ x                = waveform(start_pos_sig:end_pos_sig);
 
 %% ILC_Scheme
 orders=[memory_deg_weblab,memory_depth_weblab];
-[x_opt, error_vec_plot] = ILC_Scheme_RFWebLab(x,y, orders,3);
+[x_opt, error_vec_plot] = ILC_Scheme_RFWebLab(x,y, orders,100);
 figure; 
 plot(1:length(error_vec_plot), error_vec_plot);
 xlabel('Iterations');
