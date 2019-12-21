@@ -20,7 +20,7 @@ for n = memLen:length(yd)
     end
 end
 
-w = inv(ctranspose(Y(3:length(Y), :)) * Y(3:length(Y), :)) * (ctranspose(Y(3:length(Y), :)) * transpose(u(3:length(u))));
+w = inv(ctranspose(Y(3:length(Y), :)) * Y(3:length(Y), :)) * (ctranspose(Y(3:length(Y), :)) * u(3:length(u)));
 
 % Reshaping w to be a matrix instead of a vector
 

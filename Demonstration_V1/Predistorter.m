@@ -1,3 +1,4 @@
+
 function [u_star, buffer] = Predistorter(u, buffer, coefMat, g)
 
 g_avg = g;

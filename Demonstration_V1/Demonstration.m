@@ -1,9 +1,11 @@
+clc; clear all;
+
 %% initializations
 
 load('100MHzLTE.mat');
 x_hat = waveform(1:10000);
-x_hat_norm = norm(x_hat,2);
-[y_hat, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_hat./(10*x_hat_norm));
+x_hat_norm = 100*norm(x_hat,2)^2;
+[y_hat, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_hat./(x_hat_norm));
 WL_delay               = finddelay(x_hat, y_hat);
 
 if(WL_delay >=0)
@@ -56,9 +58,9 @@ halfDataPts = round(numDataPts/2);
 amplifier = Get_Coefficients_Matrix(x_hat(1:halfDataPts), y_hat(1:halfDataPts), memLen, degLen);
 
 
-[y1, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(yd(1:length(u_star_vec))/g_avg);
+[y1, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(yd(1:length(u_star_vec))/(g_avg^2));%Another division in g_avg added! was not in original
 
-[y2, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(u_star_vec);
+[y2, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(u_star_vec/g_avg); %/g_avg added! was not in original
 
 figure;
 plot(abs(yd(1:length(u_star_vec))/g_avg), abs(y1), 'o');

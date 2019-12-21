@@ -20,7 +20,7 @@ iteration = 3
 
 %% RF-WEBLAB Initialize
 load(signal);                                              %load signal
-x                = waveform(start_pos_sig:end_pos_sig)./(norm(x,2));
+x                = waveform(start_pos_sig:end_pos_sig)./(norm(waveform(start_pos_sig:end_pos_sig),2));
 
 [y, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x);
 
