@@ -20,12 +20,13 @@ iteration = 3
 
 %% RF-WEBLAB Initialize
 load(signal);                                              %load signal
-x                = waveform(start_pos_sig:end_pos_sig);
+x                = waveform(start_pos_sig:end_pos_sig)./(norm(x,2));
+
 [y, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x);
 
 %% ILC_Scheme
 orders=[memory_deg_weblab,memory_depth_weblab];
-[x_opt, error_vec_plot] = ILC_Scheme_RFWebLab(x,y, orders,100);
+[x_opt, error_vec_plot] = ILC_Scheme_RFWebLab(x,y, orders,4);
 figure; 
 plot(1:length(error_vec_plot), error_vec_plot);
 xlabel('Iterations');
