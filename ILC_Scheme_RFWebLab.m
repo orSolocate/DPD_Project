@@ -1,10 +1,9 @@
-function [x_opt, error_vec_plot] = ILC_Scheme_RFWebLab(x,y,orders)
+function [x_opt, error_vec_plot] = ILC_Scheme_RFWebLab(x,y,orders,N)
 
 % Error requirement
 
 err_req = 1e-9;
 error_vec_plot = [];
-ii = 0;
 
 % Block to get PA model
 
@@ -43,15 +42,14 @@ error_vec_plot = [error_vec_plot error];
 
 gamma = 2/(2*avg_gain_weblab);
 
-while (error > err_req)
-    ii = ii + 1;
-    if (ii == 3)
+for ii=1:N
+    if (error <= err_req)
         break;
-    end
-    % "iteration k"
+    end 
     u(orders(1):length(y_d_WL)) = u(orders(1):length(y_d_WL)) + gamma * error_vec;
     % error calculation
-    max(abs(u))
+    %max(abs(u))
+    u=u./avg_gain_weblab;
     [y, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(u);
     pspectrum(y)
     error_vec = y_d_WL(orders(1):length(y_d_WL)) - y(orders(1):length(y_d_WL));

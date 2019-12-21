@@ -16,7 +16,7 @@ memory_depth_weblab = 5;                                   %M in the MP model
 Ma_WL = 9; Mb_WL = 2; Mc_WL = 0;                           %memory deg for GMP model
 Ka_WL = 8; Kb_WL = 5; Kc_WL = 0;                           %non-linearity deg for GMP
 P_WL = 5; Q_WL = 0;                                        %cross-terms for GMP
-
+iteration = 3                                               
 
 %% RF-WEBLAB Initialize
 load(signal);                                              %load signal
@@ -25,7 +25,7 @@ x                = waveform(start_pos_sig:end_pos_sig);
 
 %% ILC_Scheme
 orders=[memory_deg_weblab,memory_depth_weblab];
-[x_opt, error_vec_plot] = ILC_Scheme_RFWebLab(x,y, orders);
+[x_opt, error_vec_plot] = ILC_Scheme_RFWebLab(x,y, orders,3);
 figure; 
 plot(1:length(error_vec_plot), error_vec_plot);
 xlabel('Iterations');
