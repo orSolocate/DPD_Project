@@ -1,4 +1,4 @@
-function updated_coef = Update_coef_GMP(x, y, PD_coef_Vec_GMP_WL, orders_WL, miu)
+function updated_coef = Update_coef_GMP(y, x, PD_coef_Vec_GMP_WL, orders_WL, miu)
 
     delay           = finddelay(x, y);
     if(delay >=0)
