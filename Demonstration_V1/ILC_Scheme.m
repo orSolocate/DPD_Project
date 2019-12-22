@@ -1,7 +1,7 @@
 function [u, error_vec_plot] = ILC_Scheme(yd, g_avg, x_hat, y_hat, x_hat_norm  )
 
 % Error requirement
-iterations_num =2;
+iterations_num =10;
 err_req = 1e-9;
 error_vec_plot = [];
 sigma = 0.001;

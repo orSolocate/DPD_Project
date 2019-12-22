@@ -4,7 +4,7 @@ clc; clear all;
 
 load('100MHzLTE.mat');
 x_hat = waveform(1:10000);
-x_hat_norm = 100*norm(x_hat,2)^2;
+x_hat_norm = 10000*norm(x_hat,2)^2;
 [y_hat, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_hat./(x_hat_norm));
 WL_delay               = finddelay(x_hat, y_hat);
 
