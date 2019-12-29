@@ -26,6 +26,8 @@ y_d              = x.*avg_gain;
 AMP_coef_Matrix  = Get_coef_MP(inDataPA, outDataPA, mem_deg, mem_depth);
 PD_coef_Matrix   = Get_coef_MP(outDataPA./avg_gain, inDataPA, mem_deg, mem_depth);
 
+dir="Experiments/MP_"+iterations_num_MP+"_iteration_"+mem_deg+"_deg_"+mem_depth+"_depth_"+miu_MP+"_miu"
+mkdir(dir)
 %% initial calculations
 x_opt_MP  = [zeros(mem_depth,1); PD_MP(x./avg_gain, PD_coef_Matrix, mem_deg, mem_depth)];
 
@@ -129,30 +131,39 @@ legend('Without DPD in MP','with MP PD')
 xlabel('abs(input)');
 ylabel('Gain');
 title('Linearity Comparison');
+savefig(dir+"/linearity.fig")
 
 figure
 plot(error_per_iter_MP(2:end))
 legend('error per iteration MP')
 xlabel('iteration #');
 ylabel('error on y (norm-2)');
+title("Error (iteration)")
+savefig(dir+"/error_y.fig")
 
 figure
 plot(phase_per_iter_MP)
 legend('phase per iteration MP')
 xlabel('iteration #');
-ylabel('phase diff [deg]');
+ylabel('phase difference [degrees]');
+title("Phase (iteration)")
+savefig(dir+"/phase.fig")
 
 figure
 plot(avg_power_per_iter_MP)
 legend('avg power per iteration MP')
 xlabel('iteration #');
 ylabel('average input power [dBm]');
+title("Average Power (iteration)")
+savefig(dir+"/in_power.fig")
 
 figure
 plot(RMS_in_per_iter_MP)
 legend('RMS in per iteration MP')
 xlabel('iteration #');
 ylabel('RMS in [dBm]');
+title("RMS in(iteration)")
+savefig(dir+"/rms_in.fig")
 
 figure
 pspectrum(y_d(mem_depth+1:end))
@@ -161,3 +172,5 @@ pspectrum(y_in_MP(mem_depth+1:end))
 hold on
 pspectrum(y_MP(mem_depth+1:end))
 legend('y_d','no PD in MP','with MP PD')
+title("Signal Y After "+iterations_num_MP+" iterations")
+savefig(dir+"/y.fig")
