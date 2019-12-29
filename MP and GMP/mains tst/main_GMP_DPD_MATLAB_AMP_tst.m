@@ -1,6 +1,7 @@
 clc; clear; close all;                                     %start freash
 
 % General User inputs
+amp_data          = 'simrfV2_powamp_dpd_data.mat';
 signal            = '100MHzLTE.mat';
 model_run_period  = 60000 ;                                %num of samples to run in the model
 start_pos_sig     = 1;
@@ -8,8 +9,7 @@ end_pos_sig       = start_pos_sig+model_run_period-1;
 
 % Loads
 load(signal);                                              %load signal
-load('inDataPA.mat');
-load('outDataPA.mat');
+load(amp_data);                                            %load amp data
 
 % Model User inputs
 iterations_num_GMP = 20;
@@ -126,7 +126,7 @@ transfer_with_GMP_PD  = y_GMP./x;
 figure;
 plot(abs(x), 20*log10(abs(transfer_no_PD_in_GMP)), 'o');
 hold on;
-plot(abs(x_opt_GMP), 20*log10(abs(transfer_with_GMP_PD)), '*');
+plot(abs(x), 20*log10(abs(transfer_with_GMP_PD)), '*');
 legend('Without DPD in GMP','with GMP PD')
 xlabel('abs(input)');
 ylabel('Gain');

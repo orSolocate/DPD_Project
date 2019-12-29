@@ -18,9 +18,9 @@ x                     = x(start_pos_sig:end_pos_sig)./norm(x,2);
 %% Model User inputs
 iterations_num_MP  = 4;
 resistor           = 50;
-miu_MP             = 0.5;
+miu_MP             = 0.1;
 
-mem_depth = 4 ;                                            %M in the MP model
+mem_depth = 2 ;                                            %M in the MP model
 mem_deg   = 5 ;                                            %K in the MP model
 
 %% Initialize and Model

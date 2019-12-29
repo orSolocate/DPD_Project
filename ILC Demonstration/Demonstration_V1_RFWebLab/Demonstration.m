@@ -4,8 +4,11 @@ clc; clear all;
 
 load('100MHzLTE.mat');
 x_hat = waveform(1:10000);
-x_hat_norm = 10000*norm(x_hat,2)^2;
-[y_hat, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_hat./(x_hat_norm));
+resistor=50;
+avg_power = 10*log10( norm(x_hat)^2/resistor/length(x_hat)) + 30;
+%x_hat_norm = 10000*norm(x_hat,2)^2;
+
+[y_hat, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_hat,avg_power);
 WL_delay               = finddelay(x_hat, y_hat);
 
 if(WL_delay >=0)
@@ -22,7 +25,7 @@ u_star_vec = zeros(1, predistorter_iter);
 
 %% ILC_Scheme
 
-[u, error_vec_plot] = ILC_Scheme(yd, g_avg, x_hat, y_hat, x_hat_norm );
+[u, error_vec_plot] = ILC_Scheme(yd, g_avg, x_hat, y_hat, avg_power );
 figure; 
 plot(1:length(error_vec_plot), error_vec_plot);
 xlabel('Iterations');
@@ -58,9 +61,11 @@ halfDataPts = round(numDataPts/2);
 amplifier = Get_Coefficients_Matrix(x_hat(1:halfDataPts), y_hat(1:halfDataPts), memLen, degLen);
 
 
-[y1, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(yd(1:length(u_star_vec))/(g_avg^2));%Another division in g_avg added! was not in original
+%[y1, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(yd(1:length(u_star_vec))/(g_avg^2));%Another division in g_avg added! was not in original
+[y1, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(yd(1:length(u_star_vec)),avg_power);
 
-[y2, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(u_star_vec/g_avg); %/g_avg added! was not in original
+%[y2, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(u_star_vec/g_avg); %/g_avg added! was not in original
+[y2, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(u_star_vec,avg_power);
 
 figure;
 plot(abs(yd(1:length(u_star_vec))/g_avg), abs(y1), 'o');
