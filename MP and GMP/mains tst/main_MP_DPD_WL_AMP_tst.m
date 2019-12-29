@@ -6,14 +6,7 @@ signal            = 'testsignal.mat';
 model_run_period  = 60000 ;                                %num of samples to run in the model
 start_pos_sig     = 1;
 end_pos_sig       = start_pos_sig+model_run_period-1;
-RMS_in            = -18;
 Fs                = 200e6;
-
-%% Loads
-load(signal);                                              %load signal
-%x                     = waveform(start_pos_sig:end_pos_sig);
-x                     = x(start_pos_sig:end_pos_sig)./norm(x,2);
-[y, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x);
 
 %% Model User inputs
 iterations_num_MP  = 4;
@@ -22,6 +15,13 @@ miu_MP             = 0.1;
 
 mem_depth = 2 ;                                            %M in the MP model
 mem_deg   = 5 ;                                            %K in the MP model
+
+%% Loads
+load(signal);                                              %load signal
+%x                     = waveform(start_pos_sig:end_pos_sig);
+x                     = x(start_pos_sig:end_pos_sig)./norm(x,2);
+RMS_in                = 10*log10( norm(x)^2/resistor/length(x)) + 30;
+[y, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x);
 
 %% Initialize and Model
 WL_delay            = finddelay(x, y);
@@ -41,8 +41,8 @@ y_d                 = x.*avg_gain;
 x_opt_MP  = [zeros(mem_depth,1); PD_MP(x./avg_gain, PD_coef_MP_Mat, mem_deg, mem_depth)];
 x_opt_MP  = [zeros(mem_depth,1); PD_MP(x_opt_MP, AMP_coef_Matrix, mem_deg, mem_depth)];
 
-[y_MP, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_opt_MP);
-
+[y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP);
+    
 %phase correction
 %x_opt_MP  = ifft(fft(x_opt_MP).*exp(-phdiffmeasure(y_MP, x_opt_MP)*1i));
 
@@ -77,7 +77,7 @@ phase_per_iter_MP         = zeros(iterations_num_MP+1,1);
 phase_per_iter_MP(1)      = phdiffmeasure(y_MP, x_opt_MP)*180/pi;
 
 avg_power_per_iter_MP     = zeros(iterations_num_MP+1,1);
-avg_power_per_iter_MP(1)  = 10*log10( norm(x_opt_MP)^2/resistor/length(x)) + 30;
+avg_power_per_iter_MP(1)  = 10*log10( norm(x_opt_MP)^2/resistor/length(x_opt_MP)) + 30;
 
 PAPR_per_iter_MP          = zeros(iterations_num_MP+1,1);
 PAPR_per_iter_MP(1)       = 20*log10(max(abs(x_opt_MP))*sqrt(length(x_opt_MP))/norm(x_opt_MP));
@@ -85,6 +85,8 @@ PAPR_per_iter_MP(1)       = 20*log10(max(abs(x_opt_MP))*sqrt(length(x_opt_MP))/n
 RMS_in_per_iter_MP        = zeros(iterations_num_MP+1,1);
 RMS_in_per_iter_MP(1)     = avg_power_per_iter_MP(1);
 
+err                       = zeros(iterations_num_MP+1,1);
+err(1)                    = mean(abs(y_MP(1:end-WL_delay) - x_opt_MP(WL_delay+1:end)));
 %% Iterate MP
 ll = 1;
 while (ll<=iterations_num_MP)
@@ -98,9 +100,10 @@ while (ll<=iterations_num_MP)
     AMP_coef_Matrix = Update_coef_MP(x_opt_MP, y_MP, AMP_coef_Matrix, mem_deg, mem_depth, miu_MP);
    
     %get the updated optimal input
-    x_opt_MP  = [zeros(mem_depth,1); PD_MP(x./avg_gain, PD_coef_MP_Mat, mem_deg, mem_depth)];
-    x_opt_MP  = [zeros(mem_depth,1); PD_MP(x_opt_MP, AMP_coef_Matrix, mem_deg, mem_depth)];
-
+    x_opt_MP = [zeros(mem_depth,1); PD_MP(x./avg_gain, PD_coef_MP_Mat, mem_deg, mem_depth)];
+    x_opt_MP = [zeros(mem_depth,1); PD_MP(x_opt_MP, AMP_coef_Matrix, mem_deg, mem_depth)];
+    %x_opt_MP = ifft(fft(x_opt_MP)./(err(ll)));
+    
     %phase correction
     %x_opt_MP                 = ifft(fft(x_opt_MP).*exp(-phdiffmeasure(y_MP, x_opt_MP)*1i));
     
@@ -124,7 +127,8 @@ while (ll<=iterations_num_MP)
     ll = ll+1;
     
     phase_per_iter_MP(ll)     = phdiffmeasure(y_MP, x_opt_MP)*180/pi;
-    avg_power_per_iter_MP(ll) = 10*log10( norm(x_opt_MP)^2/resistor/length(x)) + 30;
+    avg_power_per_iter_MP(ll) = 10*log10( norm(x_opt_MP)^2/resistor/length(x_opt_MP)) + 30;
+    err(ll)                   = mean(abs(y_MP(1:end-WL_delay) - x_opt_MP(WL_delay+1:end)));
     PAPR_per_iter_MP(ll)      = 20*log10(max(abs(x_opt_MP))*sqrt(length(x_opt_MP))/norm(x_opt_MP));
     RMS_in_per_iter_MP(ll)    = RMS_in_per_iter_MP(ll-1) - (PAPR_per_iter_MP(ll) - PAPR_per_iter_MP(ll-1));
 
