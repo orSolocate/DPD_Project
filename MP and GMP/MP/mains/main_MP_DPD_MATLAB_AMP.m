@@ -14,7 +14,7 @@ load(amp_data);                                            %load amp data
 %% Model User inputs
 iterations_num_MP  = 20;
 resistor           = 50;
-miu_MP             = -0.009;
+miu_MP             = -0.1;
 
 mem_depth = 2 ;                                            %M in the MP model
 mem_deg   = 5 ;                                            %K in the MP model
@@ -25,6 +25,9 @@ x                = waveform(start_pos_sig:end_pos_sig);
 y_d              = x.*avg_gain;
 AMP_coef_Matrix  = Get_coef_MP(inDataPA, outDataPA, mem_deg, mem_depth);
 PD_coef_Matrix   = Get_coef_MP(outDataPA, inDataPA, mem_deg, mem_depth);
+
+dir="MP_"+iterations_num_MP+"_iteration_"+mem_deg+"_deg_"+mem_depth+"_depth_"+miu_MP+"_miu"
+mkdir(dir)
 
 %% initial calculations
 x_opt_MP  = [zeros(mem_depth,1); PD_MP(y_d, PD_coef_Matrix, mem_deg, mem_depth)];
@@ -138,6 +141,7 @@ legend('Without DPD in MP','with MP PD')
 xlabel('abs(input)');
 ylabel('Gain');
 title('Linearity Comparison');
+savefig(dir+"/linearity.fig")
 
 figure
 plot(error_per_iter_MP(2:end))

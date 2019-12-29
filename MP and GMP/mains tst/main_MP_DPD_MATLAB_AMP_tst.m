@@ -1,6 +1,7 @@
 clc; clear; close all;                                     %start freash
 
 %% General User inputs
+amp_data          = 'simrfV2_powamp_dpd_data.mat';
 signal            = '100MHzLTE.mat';
 model_run_period  = 60000 ;                                %num of samples to run in the model
 start_pos_sig     = 1;
@@ -8,8 +9,7 @@ end_pos_sig       = start_pos_sig+model_run_period-1;
 
 %% Loads
 load(signal);                                              %load signal
-load('inDataPA.mat');
-load('outDataPA.mat');
+load(amp_data);                                            %load amp data
 
 %% Model User inputs
 iterations_num_MP  = 20;
@@ -49,7 +49,7 @@ hold on
 pspectrum(y_MP(mem_depth+1:end))
 legend('y_d','no PD in MP','with MP PD')
 
-figure;
+figure
 plot(abs(x), 20*log10(abs(transfer_no_PD)), 'o');
 hold on;
 plot(abs(x_opt_MP), 20*log10(abs(transfer_with_MP_PD)), '*');
