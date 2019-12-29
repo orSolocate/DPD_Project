@@ -6,13 +6,12 @@ signal            = 'testsignal.mat';
 model_run_period  = 60000 ;                                %num of samples to run in the model
 start_pos_sig     = 1;
 end_pos_sig       = start_pos_sig+model_run_period-1;
-RMS_in            = -18;
+RMS_in            = -37;
 Fs                = 200e6;
-
 %% Loads
 load(signal);                                              %load signal
 %x                     = waveform(start_pos_sig:end_pos_sig);
-x                     = x(start_pos_sig:end_pos_sig)./norm(x,2);
+x                     = x(start_pos_sig:end_pos_sig);%./norm(x,2);
 [y, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x,RMS_in);
 
 %% Model User inputs

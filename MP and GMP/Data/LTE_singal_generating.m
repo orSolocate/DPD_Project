@@ -1,6 +1,6 @@
 % Configure the set of NDLRB values to describe the carriers to be
 % aggregated
-NDLRB = [100 100 100 100];
+NDLRB = [100 100 100 100 100];
 
 % Establish the number of component carriers
 numCC = numel(NDLRB);
