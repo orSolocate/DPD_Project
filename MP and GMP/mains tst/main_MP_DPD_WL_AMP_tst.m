@@ -6,18 +6,19 @@ signal            = 'testsignal.mat';
 model_run_period  = 60000 ;                                %num of samples to run in the model
 start_pos_sig     = 1;
 end_pos_sig       = start_pos_sig+model_run_period-1;
-RMS_in            = -37;
+RMS_in            = -18;
 Fs                = 200e6;
+
 %% Loads
 load(signal);                                              %load signal
 %x                     = waveform(start_pos_sig:end_pos_sig);
-x                     = x(start_pos_sig:end_pos_sig);%./norm(x,2);
-[y, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x,RMS_in);
+x                     = x(start_pos_sig:end_pos_sig)./norm(x,2);
+[y, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x);
 
 %% Model User inputs
-iterations_num_MP  = 10;
+iterations_num_MP  = 4;
 resistor           = 50;
-miu_MP             = 1;
+miu_MP             = 0.5;
 
 mem_depth = 4 ;                                            %M in the MP model
 mem_deg   = 5 ;                                            %K in the MP model
@@ -25,12 +26,12 @@ mem_deg   = 5 ;                                            %K in the MP model
 %% Initialize and Model
 WL_delay            = finddelay(x, y);
 if(WL_delay >=0)
-    avg_gain        = abs(mean(y(WL_delay+1:end)./x(1:end-WL_delay))) + 100;
+    avg_gain        = abs(mean(y(WL_delay+1:end)./x(1:end-WL_delay)));
     PD_coef_MP_Mat  = Get_coef_MP((y(WL_delay+1:end)')./avg_gain, x(1:end-WL_delay)', mem_deg, mem_depth);
     AMP_coef_Matrix = Get_coef_MP(x(1:end-WL_delay)', y(WL_delay+1:end)', mem_deg, mem_depth);
 end
 if(WL_delay < 0)
-    avg_gain        = abs(mean(y(1:end-WL_delay)./x(WL_delay+1:end))) + 100;
+    avg_gain        = abs(mean(y(1:end-WL_delay)./x(WL_delay+1:end)));
     PD_coef_MP_Mat  = Get_coef_MP((y(1:end-WL_delay)')./avg_gain, x(WL_delay+1:end)', mem_deg, mem_depth);
     AMP_coef_Matrix = Get_coef_MP(x(WL_delay+1:end)', y(1:end-WL_delay)', mem_deg, mem_depth);
 end
@@ -40,7 +41,7 @@ y_d                 = x.*avg_gain;
 x_opt_MP  = [zeros(mem_depth,1); PD_MP(x./avg_gain, PD_coef_MP_Mat, mem_deg, mem_depth)];
 x_opt_MP  = [zeros(mem_depth,1); PD_MP(x_opt_MP, AMP_coef_Matrix, mem_deg, mem_depth)];
 
-[y_MP, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_opt_MP,RMS_in);
+[y_MP, RMSout, Idc, Vdc]  = RFWebLab_PA_meas_v1_1(x_opt_MP);
 
 %phase correction
 %x_opt_MP  = ifft(fft(x_opt_MP).*exp(-phdiffmeasure(y_MP, x_opt_MP)*1i));
@@ -104,8 +105,8 @@ while (ll<=iterations_num_MP)
     %x_opt_MP                 = ifft(fft(x_opt_MP).*exp(-phdiffmeasure(y_MP, x_opt_MP)*1i));
     
     %get the Amp output
-    [y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP,RMS_in);
-    
+    [y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP);
+
     %spectrum plot every 2nd iteration
     if(0 == mod(ll,1))
         figure
