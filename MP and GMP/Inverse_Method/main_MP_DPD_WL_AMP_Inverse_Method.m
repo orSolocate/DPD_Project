@@ -1,8 +1,8 @@
 clc; clear; close all;                                     %start freash
 
 %% General User inputs
-%signal            = '100MHzLTE.mat';
-signal            = 'testsignal.mat';
+signal            = '100MHzLTE.mat';
+%signal            = 'testsignal.mat';
 model_run_period  = 60000 ;                                %num of samples to run in the model
 start_pos_sig     = 1;
 end_pos_sig       = start_pos_sig+model_run_period-1;
@@ -19,7 +19,8 @@ mem_deg   = 5 ;                                            %K in the MP model
 %% Loads
 load(signal);                                              %load signal
 %x                     = waveform(start_pos_sig:end_pos_sig);
-x                     = x(start_pos_sig:end_pos_sig)./norm(x,2);
+x                     = waveform(start_pos_sig:end_pos_sig);
+x=x./norm(x,2);
 RMS_in                = 10*log10( norm(x)^2/resistor/length(x)) + 30;
 [y, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x);
 
@@ -45,7 +46,7 @@ x_opt_MP  = [zeros(mem_depth,1); PD_MP(x_opt_MP, AMP_coef_Matrix, mem_deg, mem_d
     
 %phase correction
 %x_opt_MP  = ifft(fft(x_opt_MP).*exp(-phdiffmeasure(y_MP, x_opt_MP)*1i));
-
+x_opt_MP=synchronize_freq(y_MP, x_opt_MP, 'q');
 %% Sub calculations
 WL_delay1 = finddelay(x,y);
 transfer_no_PD        = y(WL_delay1+1:end)./x(1:end-WL_delay1);
@@ -106,7 +107,8 @@ while (ll<=iterations_num_MP)
     
     %phase correction
     %x_opt_MP                 = ifft(fft(x_opt_MP).*exp(-phdiffmeasure(y_MP, x_opt_MP)*1i));
-    
+    x_opt_MP=synchronize_freq(y_MP, x_opt_MP, 'q');
+
     %get the Amp output
     [y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP);
 
@@ -142,7 +144,7 @@ transfer_with_MP_PD   = y_MP(WL_delay+1:end)./x(1:end-WL_delay);
 
 %% Ploting final results
 figure;
-plot(abs(x(1:end-WL_delay)), 20*log10(abs(transfer_no_PD)), 'o');
+plot(abs(x(1:end-WL_delay+1)), 20*log10(abs(transfer_no_PD)), 'o');
 hold on;
 plot(abs(x(1:end-WL_delay)), 20*log10(abs(transfer_with_MP_PD)), '*');
 legend('Without DPD','with MP PD')
