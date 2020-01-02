@@ -26,7 +26,7 @@ y_d              = x.*avg_gain;
 AMP_coef_Matrix  = Get_coef_MP(inDataPA, outDataPA, mem_deg, mem_depth);
 PD_coef_Matrix   = Get_coef_MP(outDataPA./avg_gain, inDataPA, mem_deg, mem_depth);
 
-dir="Experiments/MP_"+iterations_num_MP+"_iteration_"+mem_deg+"_deg_"+mem_depth+"_depth_"+miu_MP+"_miu"
+dir="Experiments/MP_"+signal+"_"+iterations_num_MP+"_iteration_"+mem_deg+"_deg_"+mem_depth+"_depth_"+miu_MP+"_miu"
 mkdir(dir)
 %% initial calculations
 x_opt_MP  = [zeros(mem_depth,1); PD_MP(x./avg_gain, PD_coef_Matrix, mem_deg, mem_depth)];

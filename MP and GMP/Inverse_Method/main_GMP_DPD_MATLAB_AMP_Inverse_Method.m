@@ -29,7 +29,7 @@ y_d              = x.*avg_gain;
 AMP_coef_GMP_vec = Get_coef_GMP(inDataPA, outDataPA, orders);
 PD_coef_GMP_vec  = Get_coef_GMP(outDataPA./avg_gain, inDataPA, orders);
 
-dir="Experiments/GMP_"+iterations_num_GMP+"_iteration_"+Ma+"_Ma_"+Mb+"_Mb_"+Mc+"_Mc_"+Ka+"_Ka_"+Kb+"_Kb_"+Kc+"_Kc_"+P+"_P_"+Q+"_Q_"+miu_GMP+"_miu"
+dir="Experiments/GMP_"+signal+"_"+iterations_num_GMP+"_iteration_"+Ma+"_Ma_"+Mb+"_Mb_"+Mc+"_Mc_"+Ka+"_Ka_"+Kb+"_Kb_"+Kc+"_Kc_"+P+"_P_"+Q+"_Q_"+miu_GMP+"_miu"
 mkdir(dir)
 
 % initial calculations
