@@ -1,6 +1,7 @@
 clc; clear; close all;                                     %start freash
 
 % General User inputs
+amp_data          = 'simrfV2_powamp_dpd_data.mat';
 signal            = '100MHzLTE.mat';
 model_run_period  = 60000 ;                                %num of samples to run in the model
 start_pos_sig     = 1;
@@ -8,11 +9,10 @@ end_pos_sig       = start_pos_sig+model_run_period-1;
 
 % Loads
 load(signal);                                              %load signal
-load('inDataPA.mat');
-load('outDataPA.mat');
+load(amp_data);                                            %load amp data
 
 % Model User inputs
-iterations_num_GMP = 20;
+iterations_num_GMP = 2;
 resistor           = 50;
 miu_GMP            = -0.1;
 
@@ -28,6 +28,9 @@ x                = waveform(start_pos_sig:end_pos_sig);
 y_d              = x.*avg_gain;
 AMP_coef_GMP_vec = Get_coef_GMP(inDataPA, outDataPA, orders);
 PD_coef_GMP_vec  = Get_coef_GMP(outDataPA./avg_gain, inDataPA, orders);
+
+dir="Experiments/GMP_"+iterations_num_GMP+"_iteration_"+Ma+"_Ma_"+Mb+"_Mb_"+Mc+"_Mc_"+Ka+"_Ka_"+Kb+"_Kb_"+Kc+"_Kc_"+P+"_P_"+Q+"_Q_"+miu_GMP+"_miu"
+mkdir(dir)
 
 % initial calculations
 x_opt_GMP = [zeros(first_n_GMP-1,1); PD_GMP(x./avg_gain, PD_coef_GMP_vec,orders); zeros(orders(8),1)];
@@ -126,35 +129,44 @@ transfer_with_GMP_PD  = y_GMP./x;
 figure;
 plot(abs(x), 20*log10(abs(transfer_no_PD_in_GMP)), 'o');
 hold on;
-plot(abs(x_opt_GMP), 20*log10(abs(transfer_with_GMP_PD)), '*');
+plot(abs(x), 20*log10(abs(transfer_with_GMP_PD)), '*');
 legend('Without DPD in GMP','with GMP PD')
 xlabel('abs(input)');
 ylabel('Gain');
 title('Linearity Comparison');
+savefig(dir+"/linearity.fig")
 
 figure
 plot(error_per_iter_GMP(2:end))
 legend('error per iteration GMP')
 xlabel('iteration #');
 ylabel('error on y (norm-2)');
+title("Error (iteration)")
+savefig(dir+"/error_y.fig")
 
 figure
 plot(phase_per_iter_GMP)
 legend('phase per iteration GMP')
 xlabel('iteration #');
 ylabel('phase diff (deg)');
+title("Phase (iteration)")
+savefig(dir+"/phase.fig")
 
 figure
 plot(avg_power_per_iter_GMP)
 legend('avg power per iteration GMP')
 xlabel('iteration #');
 ylabel('average input power (dBm)');
+title("Average Power (iteration)")
+savefig(dir+"/in_power.fig")
 
 figure
 plot(RMS_in_per_iter_GMP)
 legend('RMS in per iteration GMP')
 xlabel('iteration #');
 ylabel('RMS in');
+title("RMS in(iteration)")
+savefig(dir+"/rms_in.fig")
 
 figure
 pspectrum(y_d(orders(1)+1:end))
@@ -163,3 +175,5 @@ pspectrum(y_in_GMP(orders(1)+1:end))
 hold on
 pspectrum(y_GMP(orders(1)+1:end))
 legend('y_d','no PD in GMP','with GMP PD')
+title("Signal Y After "+iterations_num_GMP+" iterations")
+savefig(dir+"/y.fig")
