@@ -99,16 +99,21 @@ while (ll<=iterations_num_MP)
     x_err   = Get_err_vec(x_model, x_opt_MP);
     
     %get the updated coefficients for the model
-    WL_delay            = finddelay(x, y);
-    if(WL_delay >=0)
-        PD_coef_MP_Mat  = Get_coef_MP((y_model(WL_delay+1:end)'), x_err(1:end-WL_delay)', mem_deg, mem_depth);
-        AMP_coef_Matrix = Get_coef_MP(x_opt_MP(1:end-WL_delay)', y_err(WL_delay+1:end)', mem_deg, mem_depth);
+    WL_delay1            = finddelay(x_err, y_model);
+    WL_delay2            = finddelay(x_opt_MP, y_err);
+    if(WL_delay1 >=0)
+        PD_coef_MP_Mat  = Get_coef_MP((y_model(WL_delay1+1:end)'), x_err(1:end-WL_delay1)', mem_deg, mem_depth);
     end
-    if(WL_delay < 0)
-        PD_coef_MP_Mat  = Get_coef_MP((y_model(1:end-WL_delay)'), x_err(WL_delay+1:end)', mem_deg, mem_depth);
-        AMP_coef_Matrix = Get_coef_MP(x_opt_MP(WL_delay+1:end)', y_err(1:end-WL_delay)', mem_deg, mem_depth);
+    if(WL_delay1 < 0)
+        PD_coef_MP_Mat  = Get_coef_MP((y_model(1:end-WL_delay1)'), x_err(WL_delay1+1:end)', mem_deg, mem_depth);
     end
     
+    if(WL_delay2 >=0)
+        AMP_coef_Matrix = Get_coef_MP(x_opt_MP(1:end-WL_delay2)', y_err(WL_delay2+1:end)', mem_deg, mem_depth);
+    end
+    if(WL_delay2 < 0)
+        AMP_coef_Matrix = Get_coef_MP(x_opt_MP(WL_delay2+1:end)', y_err(1:end-WL_delay2)', mem_deg, mem_depth);
+    end
     y_MP                     = ifft(fft(y_MP).*exp(-phdiffmeasure(y_d, y_MP)*1i));
     output_err_MP            = Get_output_err_vec(y_d, y_MP);
     error_per_iter_MP(ll+1)  = norm(output_err_MP,2);
