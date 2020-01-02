@@ -22,27 +22,26 @@ x                     = x(start_pos_sig:end_pos_sig);
 %x                     = waveform(start_pos_sig:end_pos_sig);
 x = x./norm(x,2);
 RMS_in                = 10*log10( norm(x)^2/resistor/length(x)) + 30;
-[y, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x);
+[y, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x, RMS_in);
 
 %% Initialize and Model
 WL_delay            = finddelay(x, y);
 if(WL_delay >=0)
     avg_gain        = abs(mean(y(WL_delay+1:end)./x(1:end-WL_delay)));
-    PD_coef_MP_Mat  = Get_coef_MP((y(WL_delay+1:end)')./avg_gain, x(1:end-WL_delay)', mem_deg, mem_depth);
+    PD_coef_MP_Mat  = Get_coef_MP((y(WL_delay+1:end)'), x(1:end-WL_delay)', mem_deg, mem_depth);
     AMP_coef_Matrix = Get_coef_MP(x(1:end-WL_delay)', y(WL_delay+1:end)', mem_deg, mem_depth);
 end
 if(WL_delay < 0)
     avg_gain        = abs(mean(y(1:end-WL_delay)./x(WL_delay+1:end)));
-    PD_coef_MP_Mat  = Get_coef_MP((y(1:end-WL_delay)')./avg_gain, x(WL_delay+1:end)', mem_deg, mem_depth);
+    PD_coef_MP_Mat  = Get_coef_MP((y(1:end-WL_delay)'), x(WL_delay+1:end)', mem_deg, mem_depth);
     AMP_coef_Matrix = Get_coef_MP(x(WL_delay+1:end)', y(1:end-WL_delay)', mem_deg, mem_depth);
 end
 y_d                 = x.*avg_gain;
 
 %% initial calculations
-x_opt_MP  = [zeros(mem_depth,1); PD_MP(x./avg_gain, PD_coef_MP_Mat, mem_deg, mem_depth)];
-x_opt_MP  = [zeros(mem_depth,1); PD_MP(x_opt_MP, AMP_coef_Matrix, mem_deg, mem_depth)];
+x_opt_MP  = [zeros(mem_depth,1); PD_MP(x, PD_coef_MP_Mat, mem_deg, mem_depth)];
 
-[y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP);
+[y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP, RMS_in);
     
 %phase correction
 %x_opt_MP  = ifft(fft(x_opt_MP).*exp(-phdiffmeasure(y_MP, x_opt_MP)*1i));
@@ -93,24 +92,36 @@ err(1)                    = mean(abs(y_MP(1:end-WL_delay) - x_opt_MP(WL_delay+1:
 ll = 1;
 while (ll<=iterations_num_MP)
     
+    % get model outputs and error
+    y_model = [zeros(mem_depth,1); PD_MP(x_opt_MP, AMP_coef_Matrix, mem_deg, mem_depth)];
+    x_model = [zeros(mem_depth,1); PD_MP(y_model, PD_coef_MP_Mat, mem_deg, mem_depth)];
+    y_err   = Get_err_vec(y_model, y_MP);
+    x_err   = Get_err_vec(x_model, x_opt_MP);
+    
+    %get the updated coefficients for the model
+    WL_delay            = finddelay(x, y);
+    if(WL_delay >=0)
+        PD_coef_MP_Mat  = Get_coef_MP((y_model(WL_delay+1:end)'), x_err(1:end-WL_delay)', mem_deg, mem_depth);
+        AMP_coef_Matrix = Get_coef_MP(x_opt_MP(1:end-WL_delay)', y_err(WL_delay+1:end)', mem_deg, mem_depth);
+    end
+    if(WL_delay < 0)
+        PD_coef_MP_Mat  = Get_coef_MP((y_model(1:end-WL_delay)'), x_err(WL_delay+1:end)', mem_deg, mem_depth);
+        AMP_coef_Matrix = Get_coef_MP(x_opt_MP(WL_delay+1:end)', y_err(1:end-WL_delay)', mem_deg, mem_depth);
+    end
+    
     y_MP                     = ifft(fft(y_MP).*exp(-phdiffmeasure(y_d, y_MP)*1i));
     output_err_MP            = Get_output_err_vec(y_d, y_MP);
     error_per_iter_MP(ll+1)  = norm(output_err_MP,2);
     
-    %get the updated coefficients for the model
-    PD_coef_MP_Mat  = Update_coef_MP(y_MP./avg_gain, x_opt_MP, PD_coef_MP_Mat, mem_deg, mem_depth, miu_MP);
-    AMP_coef_Matrix = Update_coef_MP(x_opt_MP, y_MP, AMP_coef_Matrix, mem_deg, mem_depth, miu_MP);
-   
     %get the updated optimal input
-    x_opt_MP = [zeros(mem_depth,1); PD_MP(x./avg_gain, PD_coef_MP_Mat, mem_deg, mem_depth)];
-    x_opt_MP = [zeros(mem_depth,1); PD_MP(x_opt_MP, AMP_coef_Matrix, mem_deg, mem_depth)];
+    x_opt_MP = [zeros(mem_depth,1); PD_MP(x, PD_coef_MP_Mat, mem_deg, mem_depth)];
     
     %phase correction
     %x_opt_MP                 = ifft(fft(x_opt_MP).*exp(-phdiffmeasure(y_MP, x_opt_MP)*1i));
     %x_opt_MP = synchronize_freq(y_MP, x_opt_MP, 'q');
     
     %get the Amp output
-    [y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP);
+    [y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP, RMS_in);
     
     %spectrum plot every 2nd iteration
     if(0 == mod(ll,1))
