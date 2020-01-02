@@ -107,7 +107,6 @@ while (ll<=iterations_num_MP)
     %get the updated optimal input
     x_opt_MP = [zeros(mem_depth,1); PD_MP(x./avg_gain, PD_coef_MP_Mat, mem_deg, mem_depth)];
     x_opt_MP = [zeros(mem_depth,1); PD_MP(x_opt_MP, AMP_coef_Matrix, mem_deg, mem_depth)];
-    %x_opt_MP = ifft(fft(x_opt_MP)./(err(ll)));
     
     %phase correction
     %x_opt_MP                 = ifft(fft(x_opt_MP).*exp(-phdiffmeasure(y_MP, x_opt_MP)*1i));
@@ -116,7 +115,7 @@ while (ll<=iterations_num_MP)
 
     %get the Amp output
     [y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP);
-
+    
     %spectrum plot every 2nd iteration
     if(0 == mod(ll,1))
         figure
