@@ -1,18 +1,20 @@
 clc; clear; close all;                                     %start freash
 
 %% General User inputs
-signal            = '100MHzLTE.mat';
-model_run_period  = 60000 ;                                %num of samples to run in the model
-start_pos_sig     = 1;
+%signal            = '100MHzLTE.mat';
+signal            = 'testsignal.mat';
+model_run_period  = 50000 ;                                %num of samples to run in the model
+start_pos_sig     = 50001;
 end_pos_sig       = start_pos_sig+model_run_period-1;
 
 %% Loads
 load(signal);                                              %load signal
-x                     = waveform(start_pos_sig:end_pos_sig);
+%x                     = waveform(start_pos_sig:end_pos_sig);
+x                     = x(start_pos_sig:end_pos_sig)./norm(x,2);
 [y, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x);
 
 %% Model User inputs
-iterations_num_MP  = 20;
+iterations_num_MP  = 4;
 resistor           = 50;
 miu_MP             = -0.03;
 

@@ -12,7 +12,7 @@ load(signal);                                              %load signal
 load(amp_data);                                            %load amp data
 
 %% Model User inputs
-iterations_num_MP  = 10;
+iterations_num_MP  = 20;
 resistor           = 50;
 miu_MP             = -0.1;
 

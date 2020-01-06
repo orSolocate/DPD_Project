@@ -105,7 +105,7 @@ while (ll<=iterations_num_MP)
         PD_coef_MP_Mat  = Get_coef_MP((y_model(WL_delay1+1:end)'), x_err(1:end-WL_delay1)', mem_deg, mem_depth);
     end
     if(WL_delay1 < 0)
-        PD_coef_MP_Mat  = Get_coef_MP((y_model(1:end-WL_delay1)'), x_err(WL_delay1+1:end)', mem_deg, mem_depth);
+        PD_coef_MP_Mat  = Get_coef_MP((y_model(1:end+WL_delay1)'), x_err(-WL_delay1+1:end)', mem_deg, mem_depth);
     end
     
     if(WL_delay2 >=0)
@@ -127,6 +127,7 @@ while (ll<=iterations_num_MP)
     
     %get the Amp output
     [y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP, RMS_in);
+    y_MP                     = ifft(fft(y_MP).*exp(-phdiffmeasure(x_opt_MP, y_MP)*1i));
     
     %spectrum plot every 2nd iteration
     if(0 == mod(ll,1))

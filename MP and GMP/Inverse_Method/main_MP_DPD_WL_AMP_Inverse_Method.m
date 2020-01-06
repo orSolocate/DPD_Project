@@ -43,7 +43,8 @@ x_opt_MP  = [zeros(mem_depth,1); PD_MP(x./avg_gain, PD_coef_MP_Mat, mem_deg, mem
 x_opt_MP  = [zeros(mem_depth,1); PD_MP(x_opt_MP, AMP_coef_Matrix, mem_deg, mem_depth)];
 
 [y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP);
-    
+%y_MP                 = ifft(fft(y_MP).*exp(-phdiffmeasure(x_opt_MP, y_MP)*1i));
+        
 %phase correction
 %x_opt_MP  = ifft(fft(x_opt_MP).*exp(-phdiffmeasure(y_MP, x_opt_MP)*1i));
 %x_opt_MP  = synchronize_freq(y_MP, x_opt_MP, 'q');
@@ -93,7 +94,7 @@ err(1)                    = mean(abs(y_MP(1:end-WL_delay) - x_opt_MP(WL_delay+1:
 ll = 1;
 while (ll<=iterations_num_MP)
     
-    y_MP                     = ifft(fft(y_MP).*exp(-phdiffmeasure(y_d, y_MP)*1i));
+    %y_MP                     = ifft(fft(y_MP).*exp(-phdiffmeasure(y_d, y_MP)*1i));
     output_err_MP            = Get_output_err_vec(y_d, y_MP);
     error_per_iter_MP(ll+1)  = norm(output_err_MP,2);
     
@@ -111,6 +112,8 @@ while (ll<=iterations_num_MP)
     
     %get the Amp output
     [y_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_opt_MP);
+    %y_MP                 = ifft(fft(y_MP).*exp(-phdiffmeasure(x_opt_MP, y_MP)*1i));
+    %y_MP = synchronize_freq(x_opt_MP, y_MP, 'q');
     
     %spectrum plot every 2nd iteration
     if(0 == mod(ll,1))
