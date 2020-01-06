@@ -43,7 +43,7 @@ else
     M_Set = Sorted_Index(1:M);
     I_sub_M = Sorted_Index(M+1:N);
     Xk_CFR(M_Set) = Xk_L_clipped(M_Set);
-    Xk_CFR(I_sub_M) = Xk(I_sub_M) + Th*Smax*exp(1j*phase(Err_k(I_sub_M)));  
+    Xk_CFR(I_sub_M) = Xk(I_sub_M) + Th*Smax*exp(1j*angle(Err_k(I_sub_M)));  
 end
 
 %Out-Of-Band processing
@@ -51,7 +51,7 @@ for k = N+1:L*N
     if (abs(Xk_L_clipped(k))^2 <= abs(P(k))^2)
        Xk_CFR(k) = Xk_L_clipped(k);
     else
-        Xk_CFR(k) = P(k)*exp(1j*phase(Xk_L_clipped(k)));
+        Xk_CFR(k) = P(k)*exp(1j*angle(Xk_L_clipped(k)));
     end
 end
 

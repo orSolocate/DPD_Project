@@ -10,6 +10,7 @@ Smax = sqrt(98/42);
 Th = 0.08 * EVM(x, Smax);
 Amax_factor = 5
 mask_factor = 1
+%mask=mask_a
 mask = mask_factor*mask;
 Amax = Amax_factor*mean(abs(x));
 
@@ -18,7 +19,7 @@ figure(1);
 plot(abs(x));
 plot(abs(fftshift(fft(x))));
 hold on;
-% plot(mask);
+plot(mask);
 title('FFT of Original Signal and Original Mask');
 grid;
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
