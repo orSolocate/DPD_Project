@@ -2,13 +2,14 @@ clc; clear; close all;
 
 %% General User inputs
 signal            = 'testsignal.mat';
-signal_verify='100MHzLTE.mat'
+%signal_verify='100MHzLTE.mat';
+%signal            = '80MHz_at_200MHz.mat';
 model_run_period  = 50000 ;                                %num of samples to run in the model
 start_pos_sig     = 1;
 end_pos_sig       = start_pos_sig+model_run_period-1;
 
 %% Model User inputs
-miu_MP    = -1;
+miu_MP    = 0.9;
 mem_depth = 4 ;                                           %M in the MP model
 mem_deg   = 5 ;                                           %K in the MP model
 
@@ -34,7 +35,7 @@ coef = Get_coef_MP(y_sf', x', mem_deg, mem_depth);
 %% Itarations pre
 k          = 1;
 error_decreases  = true;
-DISPLAY_FACTOR=10
+DISPLAY_FACTOR = 10;
 max_iter   = 50;
 error_lim  = 1e-5;
 iter_error = ones(1,1).*inf;
@@ -67,13 +68,12 @@ end
 %% Plots
 figure; plot(iter_error);
 
-load(signal_verify);
-x=waveform;
+load(signal);
 x_new = x(start_pos_sig + model_run_period:end_pos_sig+ model_run_period)./(2*norm(x,2));%z = [zeros(mem_depth,1);PD_MP(x_new.*G, coef, mem_deg, mem_depth)];
 
-z = [zeros(mem_depth,1);PD_MP(x_new.*G, coef, mem_deg, mem_depth)];
+z_new = [zeros(mem_depth,1);PD_MP(x_new.*G, coef, mem_deg, mem_depth)];
 
-[y_MP, ~, ~, ~] = RFWebLab_PA_meas_v1_1(z, RMS_in);
-[y_no_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_new.*G, RMS_in);
+[y_MP, ~, ~, ~] = RFWebLab_PA_meas_v1_1(z_new, RMS_in);
+[y_no_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_new, RMS_in);
  
 figure; pspectrum(y_MP); hold on; pspectrum(y_no_MP); legend('y_{MP}','y_{no MP}');
