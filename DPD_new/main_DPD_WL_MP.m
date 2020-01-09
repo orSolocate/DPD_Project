@@ -2,22 +2,31 @@ clc; clear; close all;
 
 %% General User inputs
 signal            = 'testsignal.mat';
-%signal_verify='100MHzLTE.mat';
-%signal            = '80MHz_at_200MHz.mat';
 model_run_period  = 50000 ;                                %num of samples to run in the model
 start_pos_sig     = 1;
 end_pos_sig       = start_pos_sig+model_run_period-1;
 
 %% Model User inputs
-miu_MP    = 0.9;
+miu_MP    = -1;
 mem_depth = 4 ;                                           %M in the MP model
 mem_deg   = 5 ;                                           %K in the MP model
 
 %% Loads
 load(signal);                                              %load signal
 x                     = x(start_pos_sig:end_pos_sig)./(2*norm(x,2));
+%x                     = x_ofdm_200(start_pos_sig:end_pos_sig)./(norm(x_ofdm_200,2));
 RMS_in                = 10*log10( norm(x)^2/50/length(x)) + 30 + 20;
 [y, ~, ~, ~] = RFWebLab_PA_meas_v1_1(x, RMS_in);
+
+% %% PAPR stuff
+% load('mask.mat');
+% Amax_factor = 5;
+% mask_factor = 5;
+% Smax = sqrt(98/42);
+% Th = 0.08 * EVM(x, Smax);
+% mask = mask_factor*mask;
+% Amax = Amax_factor*mean(abs(x));
+% x = (PAPR(x', Th, mask, Amax, Smax))';
 
 %% Initialize and Model
 WL_delay = finddelay(x, y);
@@ -42,7 +51,7 @@ iter_error = ones(1,1).*inf;
 
 %% First iteration
 z             = [zeros(mem_depth,1);PD_MP(x, coef, mem_deg, mem_depth)];
-z_hat         = [zeros(mem_depth,1);PD_MP(y_sf./G, coef, mem_deg, mem_depth)];
+z_hat         = [zeros(mem_depth,1);PD_MP(y_sf, coef, mem_deg, mem_depth)];
 error         = z - z_hat;
 iter_error(k) = norm(error,2);
 
@@ -55,7 +64,7 @@ while((iter_error(k) > error_lim) && (error_decreases) && (k < max_iter))
     coef     = (coef + miu_MP.*coef_hat);  
     
     z             = [zeros(mem_depth,1);PD_MP(x, coef, mem_deg, mem_depth)];
-    z_hat         = [zeros(mem_depth,1);PD_MP(y_sf./G, coef, mem_deg, mem_depth)];
+    z_hat         = [zeros(mem_depth,1);PD_MP(y_sf, coef, mem_deg, mem_depth)];
     error         = z - z_hat;
     iter_error(k) = norm(error,2);
     error_decreases     = iter_error(k) <= iter_error(k-1);
@@ -68,12 +77,9 @@ end
 %% Plots
 figure; plot(iter_error);
 
-load(signal);
-x_new = x(start_pos_sig + model_run_period:end_pos_sig+ model_run_period)./(2*norm(x,2));%z = [zeros(mem_depth,1);PD_MP(x_new.*G, coef, mem_deg, mem_depth)];
-
-z_new = [zeros(mem_depth,1);PD_MP(x_new.*G, coef, mem_deg, mem_depth)];
+z_new = [zeros(mem_depth,1);PD_MP(x.*G, coef, mem_deg, mem_depth)];
 
 [y_MP, ~, ~, ~] = RFWebLab_PA_meas_v1_1(z_new, RMS_in);
-[y_no_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x_new, RMS_in);
+[y_no_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x, RMS_in);
  
 figure; pspectrum(y_MP); hold on; pspectrum(y_no_MP); legend('y_{MP}','y_{no MP}');
