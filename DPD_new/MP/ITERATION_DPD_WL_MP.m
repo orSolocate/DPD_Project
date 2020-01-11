@@ -7,9 +7,9 @@ start_pos_sig     = 1;
 end_pos_sig       = start_pos_sig+model_run_period-1;
 
 %% Model User inputs
-miu=linspace(-1,1,6);
-mem_depth = 5;%linspace(0,1,2) ;                                           %M in the MP model
-mem_deg   = 7;%inspace(1,2,2) ;                                           %K in the MP model
+miu=linspace(-0.9,0.9,10);
+mem_depth = linspace(4,10,7) ;                                           %M in the MP model
+mem_deg   = linspace(1,9,9) ;                                           %K in the MP model
 
 %% Loads
 load(signal);                                              %load signal
@@ -88,14 +88,17 @@ for u=miu %u is the current miu. we create a new folder for every MIU (!)
 
             % Plots
             h(1)=figure;plot(iter_error);
+            title("eror for "+num2str(i)+" depth "+num2str(j)+" deg")'
             z_new = [zeros(i,1);PD_MP(x.*G, coef, j, i)];
 
             [y_MP, ~, ~, ~]             = RFWebLab_PA_meas_v1_1(z_new, RMS_in);
             [y_no_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x.*G, RMS_in);
-
-            h(2)=figure; pspectrum(y_MP, 200e6); hold on; pspectrum(y_no_MP, 200e6); legend('y_{MP}','y_{no MP}');
-            hold off;
-                       
+            h(2)=figure; 
+            if isempty(y_MP)==0 && isempty(y_MP)==0
+                pspectrum(y_MP, 200e6); hold on; pspectrum(y_no_MP, 200e6); legend('y_{MP}','y_{no MP}');
+                title("results for "+num2str(i)+" epth "+num2str(j)+" deg")'
+                hold off;
+            end
             save_path=strcat(curr_dir,'/',int2str(i),'_depth_',int2str(j),'_deg_.fig');                       
             savefig(h,save_path,'compact');
             close(h)
