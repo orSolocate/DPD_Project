@@ -23,7 +23,7 @@ x                     = x(start_pos_sig:end_pos_sig)./(2*norm(x,2));
 %For this to work you need to be in the directory of this main matlab file
 dir=strcat('Optimization/MP_Matlab/',signal(1:end-4));
 for u=miu %create a new folder for every MIU (!!!)    
-    curr_dir=strcat(dir,'/',int2str(u),'_miu');
+    curr_dir=strcat(dir,'/',num2str(u),'_miu');
     mkdir(curr_dir);
     for i=mem_depth
         for j=mem_deg
