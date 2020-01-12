@@ -39,6 +39,7 @@ end
 
 y_sf = ifft(fft(y).*exp(-phdiffmeasure(x, y)*1i));
 G    = mean(abs(y_sf))/mean(abs(x));%abs(mean(y./x));
+[y_no_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x.*G, RMS_in);
 
 %% Optimization
 %For this to work you need to be in the directory of this main matlab file
@@ -92,7 +93,6 @@ for u=miu %u is the current miu. we create a new folder for every MIU (!)
             z_new = [zeros(i,1);PD_MP(x.*G, coef, j, i)];
 
             [y_MP, ~, ~, ~]             = RFWebLab_PA_meas_v1_1(z_new, RMS_in);
-            [y_no_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x.*G, RMS_in);
             h(2)=figure; 
             if isempty(y_MP)==0 && isempty(y_MP)==0
                 pspectrum(y_MP, 200e6); hold on; pspectrum(y_no_MP, 200e6); legend('y_{MP}','y_{no MP}');
