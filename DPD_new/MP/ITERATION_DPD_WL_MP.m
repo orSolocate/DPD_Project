@@ -7,9 +7,9 @@ start_pos_sig     = 1;
 end_pos_sig       = start_pos_sig+model_run_period-1;
 
 %% Model User inputs
-miu=linspace(-1,1,6);
-mem_depth = 5;%linspace(0,1,2) ;                                           %M in the MP model
-mem_deg   = 7;%inspace(1,2,2) ;                                           %K in the MP model
+miu=linspace(-1,1,40);
+mem_depth = linspace(0,10,11) ;                                           %M in the MP model
+mem_deg   = linspace(1,11,11) ;                                           %K in the MP model
 
 %% Loads
 load(signal);                                              %load signal
@@ -95,7 +95,8 @@ for u=miu %u is the current miu. we create a new folder for every MIU (!)
 
             h(2)=figure; pspectrum(y_MP, 200e6); hold on; pspectrum(y_no_MP, 200e6); legend('y_{MP}','y_{no MP}');
             hold off;
-                       
+            
+            disp(['miu',num2str(u), '||| depth ',num2str(i), '||| deg ',num2str(j)]);
             save_path=strcat(curr_dir,'/',int2str(i),'_depth_',int2str(j),'_deg_.fig');                       
             savefig(h,save_path,'compact');
             close(h)
