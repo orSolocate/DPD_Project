@@ -4,7 +4,7 @@ clc;
 
 %% Initialization
 load('100MHzLTE.mat');
-load('mask.mat');
+load('our_mask_100MHzLTE.mat');
 x = (waveform(1:50000))';
 Smax = sqrt(98/42);
 Th = 0.08 * EVM(x, Smax);
