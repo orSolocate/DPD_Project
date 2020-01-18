@@ -7,8 +7,8 @@ start_pos_sig     = 1;
 end_pos_sig       = start_pos_sig+model_run_period-1;
 
 %% Model User inputs
-miu_MP    = -0.001;
-mem_depth = 7 ;                                           %M in the MP model
+miu_MP    = 0.9;
+mem_depth = 5 ;                                           %M in the MP model
 mem_deg   = 5 ;                                           %K in the MP model
 
 %% Loads
@@ -30,16 +30,16 @@ RMS_in                = 10*log10( norm(x)^2/50/length(x)) + 30 + 20;
 %% Initialize and Model
 WL_delay = finddelay(x, y);
 if(WL_delay >= 0)
-    y = y(WL_delay+1:end);
-    x = x(1:end-WL_delay);
+    y_st = y(WL_delay+1:end);
+    x    = x(1:end-WL_delay);
 elseif(WL_delay < 0)
-    y = y(1:end+WL_delay);
-    x = x(1-WL_delay:end);
+    y_st = y(1:end+WL_delay);
+    x    = x(1-WL_delay:end);
 end
 
-y_sf = ifft(fft(y).*exp(-phdiffmeasure(x, y)*1i));
-G    = mean(abs(y_sf))/mean(abs(x));%abs(mean(y./x));
-coef = Get_coef_MP(y_sf', x', mem_deg, mem_depth);
+y_sft = ifft(fft(y_st).*exp(-phdiffmeasure(x, y_st)*1i));
+G    = mean(abs(y_sft))/mean(abs(x));%abs(mean(y./x));
+coef = Get_coef_MP(y_sft', x', mem_deg, mem_depth);
 
 %% Itarations pre
 k                = 1;
@@ -51,7 +51,7 @@ iter_error       = ones(1,1).*inf;
 
 %% First iteration
 z             = [zeros(mem_depth,1);PD_MP(x, coef, mem_deg, mem_depth)];
-z_hat         = [zeros(mem_depth,1);PD_MP(y_sf, coef, mem_deg, mem_depth)];
+z_hat         = [zeros(mem_depth,1);PD_MP(y_sft, coef, mem_deg, mem_depth)];
 error         = z - z_hat;
 iter_error(k) = norm(error,2);
 
@@ -59,16 +59,17 @@ iter_error(k) = norm(error,2);
 while((iter_error(k) > error_lim) && (error_decreases) && (k < max_iter))
     k = k + 1;
     
-    delay    = finddelay(error,y_sf);
+    y_sft = ifft(fft(y_sft).*exp(-phdiffmeasure(error, y_sft)*1i));
+    delay    = finddelay(error,y_sft);
     if(delay >= 0)
-        coef_hat = Get_coef_MP((y_sf(1+delay:end))', error(1:end-delay)', mem_deg, mem_depth);
+        coef_hat = Get_coef_MP((y_sft(1+delay:end))', error(1:end-delay)', mem_deg, mem_depth);
     elseif(delay < 0)
-        coef_hat = Get_coef_MP((y_sf(1:end+delay))', error(1-delay:end)', mem_deg, mem_depth);
+        coef_hat = Get_coef_MP((y_sft(1:end+delay))', error(1-delay:end)', mem_deg, mem_depth);
     end 
     coef     = (coef + miu_MP.*coef_hat);  
     
     z               = [zeros(mem_depth,1);PD_MP(x, coef, mem_deg, mem_depth)];
-    z_hat           = [zeros(mem_depth,1);PD_MP(y_sf, coef, mem_deg, mem_depth)];
+    z_hat           = [zeros(mem_depth,1);PD_MP(y_sft, coef, mem_deg, mem_depth)];
     error           = z - z_hat;
     iter_error(k)   = norm(error,2);
     error_decreases = iter_error(k) <= iter_error(k-1);
