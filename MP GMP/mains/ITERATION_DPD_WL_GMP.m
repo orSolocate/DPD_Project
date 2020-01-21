@@ -7,10 +7,10 @@ start_pos_sig     = 1;
 end_pos_sig       = start_pos_sig+model_run_period-1;
 
 %% Model User inputs
-Miu=linspace(0.3,0.6,3);
-Ma = linspace(4,5,2) ; Mb = linspace(2,3,2) ; Mc = linspace(2,3,2) ;                                 %memory depth for GMP model
-Ka = linspace(8,9,2) ; Kb = linspace(5,6,2) ; Kc = linspace(5,6,2) ;                                 %non-linearity deg for GMP
-P = linspace(5,6,2) ;  Q = linspace(5,6,2) ;                                 %cross-terms for GMP
+Miu=linspace(0.007,0.15,2);
+Ma = linspace(4,8,5) ; Mb = linspace(2,2,1) ; Mc = linspace(2,2,1) ;                                 %memory depth for GMP model
+Ka = linspace(4,9,6) ; Kb = linspace(2,2,1) ; Kc = linspace(2,2,1) ;                                 %non-linearity deg for GMP
+P = linspace(5,5,1) ;  Q = linspace(5,5,1) ;                                 %cross-terms for GMP
 
 num_iterations=length(Miu)*length(Ma)*length(Mb)*length(Mc)*length(Ka)*length(Kb)*length(Kc)*length(P)*length(Q);
        
@@ -54,13 +54,14 @@ for miu=Miu
                                      orders              = [ma, ka, mb, kb, p, mc, kc, q];
                                      naming=strcat(int2str(ma),'_Ma_',int2str(mb),'_Mb_',int2str(mc),'_Mc_',int2str(ka),'_Ka_',int2str(kb),'_Kb_',int2str(kc),'_Kc_',int2str(p),'_P_',int2str(q),'_Q_');
                                      [iter_error,coef]=PD_iterate(x,y_sft,orders,miu);
+                                     first_n_GMP         = 1+max([orders(1), orders(3)+orders(5), orders(6)-1]);
                                      z_new = [zeros(first_n_GMP-1,1);PD_GMP(x.*G, coef,orders); zeros(orders(8),1)];
                                      [y_GMP, ~, ~, ~]             = RFWebLab_PA_meas_v1_1(z_new, RMS_in);
                                      h(1)=figure; plot(iter_error);
                                      title("eror for "+naming);
                                      if isempty(y_GMP)==0 && isempty(y_no_GMP)==0
                                         h(2)=figure; 
-                                        pspectrum(y_GMP, 200e6); hold on; pspectrum(y_no_GMP, 200e6); legend('y_{MP}','y_{no MP}');
+                                        pspectrum(y_GMP, 200e6); hold on; pspectrum(y_no_GMP, 200e6); legend('y_{GMP}','y_{no GMP}');
                                         title("results for "+naming);
                                         hold off;
                                      end
