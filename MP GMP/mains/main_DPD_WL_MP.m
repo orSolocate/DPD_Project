@@ -11,23 +11,26 @@ miu_MP    = 0.01;
 mem_depth = 5 ;                                           %M in the MP model
 mem_deg   = 7 ;                                           %K in the MP model
 
+noise_var = 0.001;
+
 %% Loads
 load(signal);                                              %load signal
 x            = x(start_pos_sig:end_pos_sig)./(2*norm(x,2));
-RMS_in       = 10*log10( norm(x)^2/50/length(x)) + 30 + 20;
-[y, ~, ~, ~] = RFWebLab_PA_meas_v1_1(x, RMS_in);
 
 %% PAPR stuff
 % load('mask.mat');
-% Amax_factor = 5;
-% mask_factor = 5;
+% Amax_factor = 1; %5
+% mask_factor = 1; %5
 % Smax = sqrt(98/42);
-% Th = 0.08 * EVM(x, Smax);
+% Th = 0.001 * EVM(x, Smax); %0.08
 % mask = mask_factor*mask;
 % Amax = Amax_factor*mean(abs(x));
-% x = (PAPR(x', Th, mask, Amax, Smax))';
+% x = (PAPR(x', Th, mask, Amax, Smax))'; % works for signals length of 50k
 
 %% Initialize and Model
+RMS_in       = 10*log10( norm(x)^2/50/length(x)) + 30 + 20;
+[y, ~, ~, ~] = RFWebLab_PA_meas_v1_1(x, RMS_in);
+
 WL_delay = finddelay(x, y);
 if(WL_delay >= 0)
     y_st = y(WL_delay+1:end);
@@ -39,7 +42,8 @@ end
 
 y_sft = ifft(fft(y_st).*exp(-phdiffmeasure(x, y_st)*1i));
 G     = mean(abs(y_sft))/mean(abs(x));%abs(mean(y./x));
-coef  = Get_coef_MP(y_sft', x', mem_deg, mem_depth);
+noise = wgn(length(y_sft),1,10*log10(noise_var),'complex');
+coef  = Get_coef_MP((y_sft + noise)', x', mem_deg, mem_depth);
 
 %% Itarations pre
 k                = 1;
@@ -83,7 +87,7 @@ end
 %% Plots
 figure; plot(iter_error);
 
-z_new = [zeros(mem_depth,1);PD_MP(x.*G*0.9, coef, mem_deg, mem_depth)]; %x.*G*0.9
+z_new = [zeros(mem_depth,1);PD_MP(x.*G, coef, mem_deg, mem_depth)]; %x.*G*0.9
 
 [y_MP, ~, ~, ~]             = RFWebLab_PA_meas_v1_1(z_new, RMS_in);
 [y_no_MP, RMSout, Idc, Vdc] = RFWebLab_PA_meas_v1_1(x, RMS_in);
